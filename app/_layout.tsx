@@ -34,7 +34,12 @@ export default function RootLayout() {
       <SafeAreaProvider>
         {status === 'ready' ? (
           <>
-            <Stack screenOptions={{ headerShown: false, animation: 'fade' }} />
+            <Stack screenOptions={{ headerShown: false }}>
+              <Stack.Screen name="index" options={{ animation: 'none' }} />
+              <Stack.Screen name="highlights" options={{ animation: 'none' }} />
+              <Stack.Screen name="profile" options={{ animation: 'none' }} />
+              <Stack.Screen name="reader/[bookId]" options={{ animation: 'fade' }} />
+            </Stack>
             <StatusBar style="dark" />
           </>
         ) : (

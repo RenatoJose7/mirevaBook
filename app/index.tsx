@@ -4,16 +4,15 @@ import { useCallback } from 'react';
 import {
   ActivityIndicator,
   Alert,
-  FlatList,
   Pressable,
   StyleSheet,
   Text,
-  useWindowDimensions,
   View,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
-import { BookCard } from '@/src/components/BookCard';
+import { BookGrid } from '@/src/components/BookGrid';
+import { BottomNavigation } from '@/src/components/BottomNavigation';
 import { EmptyLibrary } from '@/src/components/EmptyLibrary';
 import { layout, palette, radius, spacing, typography } from '@/src/constants/theme';
 import { useBooks } from '@/src/hooks/useBooks';
@@ -21,7 +20,6 @@ import type { Book } from '@/src/types/book';
 
 export default function LibraryScreen() {
   const router = useRouter();
-  const { width } = useWindowDimensions();
   const {
     books,
     loading,
@@ -31,8 +29,8 @@ export default function LibraryScreen() {
     refresh,
     addBook,
     removeBook,
+    toggleHighlight,
   } = useBooks();
-  const cardWidth = (width - layout.screenPadding * 2 - layout.gridGap) / 2;
 
   useFocusEffect(
     useCallback(() => {
@@ -90,23 +88,15 @@ export default function LibraryScreen() {
       ) : books.length === 0 ? (
         <EmptyLibrary onAdd={() => void addBook()} />
       ) : (
-        <FlatList
-          data={books}
-          keyExtractor={(item) => String(item.id)}
-          numColumns={2}
-          columnWrapperStyle={styles.row}
-          showsVerticalScrollIndicator={false}
-          contentContainerStyle={styles.listContent}
-          renderItem={({ item }) => (
-            <BookCard
-              book={item}
-              width={cardWidth}
-              onPress={() => openBook(item)}
-              onLongPress={() => confirmDelete(item)}
-            />
-          )}
+        <BookGrid
+          books={books}
+          onOpen={openBook}
+          onDelete={confirmDelete}
+          onToggleHighlight={(book) => void toggleHighlight(book)}
         />
       )}
+
+      <BottomNavigation active="home" />
 
       {error && (
         <Pressable accessibilityRole="alert" onPress={clearError} style={styles.errorBanner}>
@@ -158,13 +148,11 @@ const styles = StyleSheet.create({
   addIcon: { color: palette.surface, fontSize: 27, lineHeight: 29, fontWeight: '300' },
   centered: { flex: 1, alignItems: 'center', justifyContent: 'center', gap: spacing.sm },
   loadingText: { color: palette.muted, fontSize: typography.small },
-  listContent: { paddingHorizontal: layout.screenPadding, paddingBottom: spacing.xxl },
-  row: { gap: layout.gridGap },
   errorBanner: {
     position: 'absolute',
     left: spacing.md,
     right: spacing.md,
-    bottom: spacing.lg,
+    bottom: 112,
     minHeight: 56,
     paddingVertical: spacing.sm,
     paddingLeft: spacing.md,

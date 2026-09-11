@@ -10,6 +10,8 @@ interface BookRow {
   current_page: number;
   created_at: string;
   last_opened_at: string | null;
+  is_highlighted: number;
+  completed_at: string | null;
 }
 
 function toBook(row: BookRow): Book {
@@ -22,6 +24,8 @@ function toBook(row: BookRow): Book {
     currentPage: row.current_page,
     createdAt: row.created_at,
     lastOpenedAt: row.last_opened_at,
+    isHighlighted: row.is_highlighted === 1,
+    completedAt: row.completed_at,
   };
 }
 
@@ -42,6 +46,16 @@ export const BooksRepository = {
       id,
     );
     return row ? toBook(row) : null;
+  },
+
+  async getHighlighted(): Promise<Book[]> {
+    const database = await getDatabase();
+    const rows = await database.getAllAsync<BookRow>(`
+      SELECT * FROM books
+      WHERE is_highlighted = 1
+      ORDER BY COALESCE(last_opened_at, created_at) DESC, id DESC
+    `);
+    return rows.map(toBook);
   },
 
   async create(input: CreateBookInput): Promise<Book> {
@@ -94,6 +108,15 @@ export const BooksRepository = {
        WHERE id = ?`,
       totalPages,
       totalPages,
+      id,
+    );
+  },
+
+  async setHighlighted(id: number, highlighted: boolean): Promise<void> {
+    const database = await getDatabase();
+    await database.runAsync(
+      'UPDATE books SET is_highlighted = ? WHERE id = ?',
+      highlighted ? 1 : 0,
       id,
     );
   },

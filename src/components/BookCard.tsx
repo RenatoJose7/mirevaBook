@@ -1,3 +1,4 @@
+import Ionicons from '@expo/vector-icons/Ionicons';
 import { useRef } from 'react';
 import { Image, Pressable, StyleSheet, Text, View } from 'react-native';
 
@@ -9,9 +10,16 @@ interface BookCardProps {
   width: number;
   onPress: () => void;
   onLongPress: () => void;
+  onToggleHighlight: () => void;
 }
 
-export function BookCard({ book, width, onPress, onLongPress }: BookCardProps) {
+export function BookCard({
+  book,
+  width,
+  onPress,
+  onLongPress,
+  onToggleHighlight,
+}: BookCardProps) {
   const longPressTriggered = useRef(false);
   const progress = book.totalPages > 0 ? Math.min(book.currentPage / book.totalPages, 1) : 0;
   const percent = Math.round(progress * 100);
@@ -42,6 +50,26 @@ export function BookCard({ book, width, onPress, onLongPress }: BookCardProps) {
             <Text style={styles.fallbackInitial}>{book.title.charAt(0).toUpperCase()}</Text>
           </View>
         )}
+        <Pressable
+          accessibilityRole="button"
+          accessibilityLabel={book.isHighlighted ? 'Remover dos destaques' : 'Adicionar aos destaques'}
+          onPress={(event) => {
+            event.stopPropagation();
+            onToggleHighlight();
+          }}
+          hitSlop={6}
+          style={({ pressed }) => [
+            styles.highlightButton,
+            book.isHighlighted && styles.highlightButtonActive,
+            pressed && styles.optionsPressed,
+          ]}
+        >
+          <Ionicons
+            name={book.isHighlighted ? 'star' : 'star-outline'}
+            size={18}
+            color={book.isHighlighted ? palette.ink : palette.surface}
+          />
+        </Pressable>
         <Pressable
           accessibilityRole="button"
           accessibilityLabel={`Opções de ${book.title}`}
@@ -87,6 +115,18 @@ const styles = StyleSheet.create({
     borderLeftColor: palette.accent,
   },
   fallbackInitial: { color: palette.accent, fontSize: 42, fontWeight: '500' },
+  highlightButton: {
+    position: 'absolute',
+    top: spacing.xs,
+    left: spacing.xs,
+    width: 34,
+    height: 34,
+    borderRadius: radius.pill,
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: 'rgba(27, 28, 26, 0.72)',
+  },
+  highlightButtonActive: { backgroundColor: '#E8C866' },
   optionsButton: {
     position: 'absolute',
     top: spacing.xs,

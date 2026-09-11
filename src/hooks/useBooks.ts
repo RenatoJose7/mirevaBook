@@ -8,7 +8,11 @@ import {
 } from '@/src/services/library.service';
 import type { Book } from '@/src/types/book';
 
-export function useBooks() {
+interface UseBooksOptions {
+  highlightedOnly?: boolean;
+}
+
+export function useBooks({ highlightedOnly = false }: UseBooksOptions = {}) {
   const [books, setBooks] = useState<Book[]>([]);
   const [loading, setLoading] = useState(true);
   const [importPhase, setImportPhase] = useState<ImportPhase | null>(null);
@@ -17,13 +21,17 @@ export function useBooks() {
   const refresh = useCallback(async () => {
     try {
       setError(null);
-      setBooks(await BooksRepository.getAll());
+      setBooks(
+        highlightedOnly
+          ? await BooksRepository.getHighlighted()
+          : await BooksRepository.getAll(),
+      );
     } catch (caught) {
       setError(caught instanceof Error ? caught.message : 'Não foi possível carregar a biblioteca.');
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [highlightedOnly]);
 
   useEffect(() => {
     void refresh();
@@ -51,6 +59,28 @@ export function useBooks() {
     }
   }, []);
 
+  const toggleHighlight = useCallback(
+    async (book: Book) => {
+      const nextValue = !book.isHighlighted;
+      try {
+        setError(null);
+        await BooksRepository.setHighlighted(book.id, nextValue);
+        setBooks((current) =>
+          current
+            .map((item) =>
+              item.id === book.id ? { ...item, isHighlighted: nextValue } : item,
+            )
+            .filter((item) => !highlightedOnly || item.isHighlighted),
+        );
+      } catch (caught) {
+        setError(
+          caught instanceof Error ? caught.message : 'Não foi possível atualizar o destaque.',
+        );
+      }
+    },
+    [highlightedOnly],
+  );
+
   return {
     books,
     loading,
@@ -60,5 +90,6 @@ export function useBooks() {
     refresh,
     addBook,
     removeBook,
+    toggleHighlight,
   };
 }

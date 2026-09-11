@@ -7,6 +7,8 @@ export interface Book {
   currentPage: number;
   createdAt: string;
   lastOpenedAt: string | null;
+  isHighlighted: boolean;
+  completedAt: string | null;
 }
 
 export interface CreateBookInput {
@@ -27,4 +29,12 @@ export interface RenderedPage {
   uri: string;
   width: number;
   height: number;
+}
+
+export interface ReadingSummary {
+  pagesRead: number;
+  booksCompleted: number;
+  booksInProgress: number;
+  overallProgress: number;
+  recentBookTitle: string | null;
 }

@@ -17,7 +17,9 @@ async function openAndMigrate(): Promise<SQLite.SQLiteDatabase> {
       total_pages INTEGER DEFAULT 0,
       current_page INTEGER DEFAULT 1,
       created_at TEXT NOT NULL,
-      last_opened_at TEXT
+      last_opened_at TEXT,
+      is_highlighted INTEGER NOT NULL DEFAULT 0,
+      completed_at TEXT
     );
 
     CREATE TABLE IF NOT EXISTS bookmarks (
@@ -30,7 +32,27 @@ async function openAndMigrate(): Promise<SQLite.SQLiteDatabase> {
 
     CREATE UNIQUE INDEX IF NOT EXISTS bookmarks_book_page
       ON bookmarks(book_id, page);
+
+    CREATE TABLE IF NOT EXISTS read_pages (
+      book_id INTEGER NOT NULL,
+      page INTEGER NOT NULL,
+      read_at TEXT NOT NULL,
+      PRIMARY KEY(book_id, page),
+      FOREIGN KEY(book_id) REFERENCES books(id) ON DELETE CASCADE
+    );
   `);
+
+  const bookColumns = await database.getAllAsync<{ name: string }>('PRAGMA table_info(books)');
+  const existingColumns = new Set(bookColumns.map((column) => column.name));
+
+  if (!existingColumns.has('is_highlighted')) {
+    await database.execAsync(
+      'ALTER TABLE books ADD COLUMN is_highlighted INTEGER NOT NULL DEFAULT 0;',
+    );
+  }
+  if (!existingColumns.has('completed_at')) {
+    await database.execAsync('ALTER TABLE books ADD COLUMN completed_at TEXT;');
+  }
 
   return database;
 }

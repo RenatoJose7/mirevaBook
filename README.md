@@ -9,7 +9,10 @@ Leitor mobile local de PDFs, construído com React Native, Expo e TypeScript. O 
 - validação do cabeçalho do PDF antes da criação do registro;
 - leitura da quantidade real de páginas e geração da capa a partir da primeira página;
 - biblioteca em duas colunas, ordenada pelo acesso mais recente;
+- navegação inferior entre Início, Destaques e Perfil;
+- seleção local de livros em destaque por meio da estrela em cada capa;
 - progresso com página atual, total e porcentagem;
+- perfil local com páginas únicas visualizadas, livros concluídos e em andamento;
 - leitor página a página com swipe horizontal e transição 3D acompanhando o dedo;
 - pré-carregamento apenas de `N - 1`, `N`, `N + 1` e `N + 2`;
 - navegação por slider, retomada automática e modo claro/escuro no leitor;
@@ -44,6 +47,37 @@ npm install
 ```
 
 ## Rodar no Android
+
+### Ciclo recomendado enquanto o aplicativo está em desenvolvimento
+
+Gere o Development Build apenas uma vez:
+
+```bash
+npx eas-cli@latest login
+npm run build:android:dev
+```
+
+Instale o APK gerado no celular. Para testar as alterações seguintes, mantenha o computador e o celular na mesma rede e execute:
+
+```bash
+npm start
+```
+
+Abra o Mireva Book instalado no celular e selecione o servidor de desenvolvimento. Alterações em telas, estilos e lógica TypeScript aparecem via Fast Refresh, sem gerar ou reinstalar outro APK.
+
+Se o celular não encontrar o computador pela rede local, use:
+
+```bash
+npm run start:tunnel
+```
+
+Somente será necessário gerar outro Development Build se uma dependência nativa, uma permissão, o Expo SDK ou outra configuração nativa mudar.
+
+Quando a versão estiver aprovada, gere o APK independente, que funciona sem o computador:
+
+```bash
+npm run build:android:preview
+```
 
 ### Build local
 
@@ -107,11 +141,16 @@ Cada importação recebe um nome interno único. Importar o mesmo PDF novamente 
 app/
   _layout.tsx
   index.tsx
+  highlights.tsx
+  profile.tsx
   reader/[bookId].tsx
 src/
   components/
     BookCard.tsx
+    BookGrid.tsx
+    BottomNavigation.tsx
     EmptyLibrary.tsx
+    EmptyHighlights.tsx
     PageTurn.tsx
     ReaderControls.tsx
     ReaderPage.tsx
@@ -120,8 +159,10 @@ src/
     database.ts
     books.repository.ts
     bookmarks.repository.ts
+    reading.repository.ts
   hooks/
     useBooks.ts
+    useReadingSummary.ts
     useReader.ts
   services/
     library.service.ts

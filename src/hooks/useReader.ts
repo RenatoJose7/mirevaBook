@@ -2,6 +2,7 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 
 import { BookmarksRepository } from '@/src/database/bookmarks.repository';
 import { BooksRepository } from '@/src/database/books.repository';
+import { ReadingRepository } from '@/src/database/reading.repository';
 import { closePdf, openPdf, renderReaderPage } from '@/src/services/pdf.service';
 import { bookFileExists } from '@/src/services/storage.service';
 import type { Book, RenderedPage } from '@/src/types/book';
@@ -114,7 +115,7 @@ export function useReader(bookId: number) {
         if (actualTotalPages !== storedBook.totalPages) {
           await BooksRepository.updateTotalPages(storedBook.id, actualTotalPages);
         }
-        await BooksRepository.updateLastOpened(storedBook.id);
+        await ReadingRepository.recordPage(storedBook.id, page);
 
         if (disposedRef.current) return;
         bookRef.current = hydratedBook;
@@ -161,7 +162,7 @@ export function useReader(bookId: number) {
       setCurrentPage(nextPage);
       setError(null);
       setBook((current) => (current ? { ...current, currentPage: nextPage } : current));
-      void BooksRepository.updateCurrentPage(targetBook.id, nextPage).catch(() => {
+      void ReadingRepository.recordPage(targetBook.id, nextPage).catch(() => {
         if (!disposedRef.current) setError('A página abriu, mas o progresso não pôde ser salvo.');
       });
       void BookmarksRepository.exists(targetBook.id, nextPage).then((exists) => {
