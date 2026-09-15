@@ -1,5 +1,6 @@
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
+import { useEffect, useState } from 'react';
 import { ActivityIndicator, Pressable, StyleSheet, Text, useWindowDimensions, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
@@ -17,13 +18,18 @@ export default function ReaderScreen() {
   const { width } = useWindowDimensions();
   const reader = useReader(Number.isInteger(bookId) && bookId > 0 ? bookId : -1);
   const pageWidth = Math.min(width - spacing.md * 2, layout.maxPageWidth);
+  const [zoomScale, setZoomScale] = useState(1);
+
+  useEffect(() => {
+    setZoomScale(1);
+  }, [reader.currentPage]);
 
   if (reader.loading) {
     return (
       <View style={styles.loadingScreen}>
         <StatusBar style="light" />
         <ActivityIndicator color={palette.readerText} />
-        <Text style={styles.loadingText}>Abrindo livro…</Text>
+        <Text style={styles.loadingText}>Abrindo livro...</Text>
       </View>
     );
   }
@@ -32,8 +38,8 @@ export default function ReaderScreen() {
     return (
       <SafeAreaView style={styles.loadingScreen}>
         <StatusBar style="light" />
-        <Text style={styles.errorTitle}>Não foi possível abrir este livro</Text>
-        <Text style={styles.errorMessage}>{reader.error ?? 'Livro não encontrado.'}</Text>
+        <Text style={styles.errorTitle}>Nao foi possivel abrir este livro</Text>
+        <Text style={styles.errorMessage}>{reader.error ?? 'Livro nao encontrado.'}</Text>
         <Pressable onPress={() => router.back()} style={styles.backButton}>
           <Text style={styles.backButtonText}>Voltar para a biblioteca</Text>
         </Pressable>
@@ -52,8 +58,10 @@ export default function ReaderScreen() {
           width={pageWidth}
           currentPage={currentPage}
           totalPages={book.totalPages}
+          zoomScale={zoomScale}
           onTurn={reader.goToPage}
           onTap={reader.toggleControls}
+          onZoomChange={setZoomScale}
           current={<ReaderPage page={pages[currentPage]} pageNumber={currentPage} darkMode={darkMode} />}
           previous={
             <ReaderPage
@@ -85,10 +93,12 @@ export default function ReaderScreen() {
           title={book.title}
           currentPage={currentPage}
           totalPages={book.totalPages}
+          zoomScale={zoomScale}
           isBookmarked={reader.isBookmarked}
           darkMode={darkMode}
           onBack={() => router.back()}
           onPageChange={reader.goToPage}
+          onZoomChange={setZoomScale}
           onToggleBookmark={() => void reader.toggleBookmark()}
           onToggleDarkMode={reader.toggleDarkMode}
         />
@@ -97,7 +107,7 @@ export default function ReaderScreen() {
       {reader.error && (
         <Pressable onPress={reader.clearError} style={styles.errorBanner}>
           <Text style={styles.errorBannerText}>{reader.error}</Text>
-          <Text style={styles.errorClose}>×</Text>
+          <Text style={styles.errorClose}>x</Text>
         </Pressable>
       )}
     </View>
@@ -106,7 +116,7 @@ export default function ReaderScreen() {
 
 const styles = StyleSheet.create({
   screen: { flex: 1, alignItems: 'center', backgroundColor: palette.reader, paddingVertical: spacing.xs },
-  screenLight: { backgroundColor: '#D8D5CD' },
+  screenLight: { backgroundColor: '#E3E0EE' },
   pageFrame: { flex: 1 },
   loadingScreen: {
     flex: 1,
